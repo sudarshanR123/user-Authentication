@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Outfit:wght@300;400;600&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Outfit:wght@300;400;600&display=swap');
 
 :root {
   --bg-deep: #0a0a0b;
@@ -226,4 +226,104 @@ textarea:focus {
 /* Animations Helpers */
 .stagger-reveal>* {
   opacity: 0;
+}
+
+
+/* Dashboard Layout & Sidebar Styles */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.jobspark-sidebar {
+  width: 260px;
+  background: white;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d5cf6;
+  text-transform: none;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  padding: 0 1.5rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.sidebar-item.active {
+  background: #eff6ff;
+  color: #2d5cf6;
+  border-right: 3px solid #2d5cf6;
+}
+
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f1f5f9;
+}
+
+.dashboard-header {
+  height: 70px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.form-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2.5rem;
+  margin-bottom: 3rem;
+  border: 1px solid #e2e8f0;
+}
+
+.dashboard-footer-bar {
+  margin-top: auto;
+  padding: 3rem 4rem;
+  background: white;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 2rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.85rem;
 }
