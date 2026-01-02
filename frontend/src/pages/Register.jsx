@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import client from '../api/client';
 import Input from '../components/Input';
 import { Eye, EyeOff } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
+import { motion } from 'framer-motion';
 
 export default function Register() {
-    // ... (rest remains same until return)
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -17,8 +17,9 @@ export default function Register() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const roleParam = searchParams.get('role') || 'none';
 
-    // Redefining handleChange properly requires 'name' prop on Input.
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -30,15 +31,26 @@ export default function Register() {
 
         try {
             const { fullName, email, password, mobile } = formData;
-            const res = await client.post('/register', {
+            const response = await client.post('/register', {
                 username: fullName,
                 email,
                 password,
-                mobile
+                mobile,
+                role: roleParam
             });
+            if (response.data.success) {
+                localStorage.setItem('userId', response.data.userId);
+                localStorage.setItem('userRole', response.data.role);
+                localStorage.setItem('userName', response.data.username);
 
-            if (res.data.success) {
-                navigate('/login');
+                // Redirect based on role
+                if (response.data.role === 'seeker') {
+                    navigate('/dashboard/seeker');
+                } else if (response.data.role === 'employer') {
+                    navigate('/dashboard/employer');
+                } else {
+                    navigate('/profile/select');
+                }
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed');
@@ -47,37 +59,82 @@ export default function Register() {
         }
     };
 
-    // Use the hook to trigger Google Popup
     const googleLogin = useGoogleLogin({
         onSuccess: tokenResponse => {
             console.log(tokenResponse);
-            // In a real app, send tokenResponse.access_token to backend to verify and create session
             alert('Google Account Selected! Access Token received.');
-            // call backend here with token
         },
         onError: () => setError('Google Login Failed'),
     });
 
     return (
-        <div className="auth-container">
-            <div className="auth-header">
-                <h2 className="auth-title">Create your jobSpark profile</h2>
-                <p className="auth-subtitle">Find and apply to top jobs across India's leading job platform</p>
-            </div>
+        <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="auth-container"
+        >
+            <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="auth-header"
+            >
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem' }}>
+                    <button
+                        onClick={() => navigate(`/register?role=seeker`)}
+                        style={{
+                            padding: '0.5rem 1.5rem',
+                            border: '1px solid var(--border-subtle)',
+                            background: roleParam === 'seeker' ? 'var(--glass-effect)' : 'transparent',
+                            color: roleParam === 'seeker' ? 'var(--accent-electric)' : 'var(--text-dim)',
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '0.7rem',
+                            cursor: 'pointer',
+                            borderRadius: '2px'
+                        }}
+                    >
+                        JOB SEEKER
+                    </button>
+                    <button
+                        onClick={() => navigate(`/register?role=employer`)}
+                        style={{
+                            padding: '0.5rem 1.5rem',
+                            border: '1px solid var(--border-subtle)',
+                            background: roleParam === 'employer' ? 'var(--glass-effect)' : 'transparent',
+                            color: roleParam === 'employer' ? 'var(--accent-gold)' : 'var(--text-dim)',
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '0.7rem',
+                            cursor: 'pointer',
+                            borderRadius: '2px'
+                        }}
+                    >
+                        EMPLOYER
+                    </button>
+                </div>
+                <h2 className="auth-title">Craft Your Identity</h2>
+                <p className="auth-subtitle">Begin your legendary professional journey</p>
+            </motion.div>
 
             {error && <div className="error-message">{error}</div>}
 
-            <form onSubmit={handleSubmit}>
+            <motion.form
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                onSubmit={handleSubmit}
+            >
                 <Input
-                    label="Full name"
+                    label="Full Name"
                     name="fullName"
-                    placeholder="What is your name?"
+                    placeholder="Enter your name"
                     value={formData.fullName}
                     onChange={handleInputChange}
                     required={true}
                 />
                 <Input
-                    label="Email ID"
+                    label="Email Address"
                     type="email"
                     name="email"
                     placeholder="Tell us your Email ID"
@@ -90,7 +147,7 @@ export default function Register() {
                         label="Password"
                         type={showPassword ? "text" : "password"}
                         name="password"
-                        placeholder="(Minimum 6 characters)"
+                        placeholder="Secure your account"
                         value={formData.password}
                         onChange={handleInputChange}
                         required={true}
@@ -104,10 +161,10 @@ export default function Register() {
                             top: '38px',
                             background: 'none',
                             border: 'none',
-                            color: '#9ca3af'
+                            color: 'var(--text-dim)'
                         }}
                     >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                 </div>
 
@@ -115,38 +172,34 @@ export default function Register() {
                     label="Mobile number"
                     type="tel"
                     name="mobile"
-                    placeholder="+91 Enter your mobile number"
+                    placeholder="+91 Enter your number"
                     value={formData.mobile}
                     onChange={handleInputChange}
                     required={true}
                 />
 
-                <div className="checkbox-group">
-                    <input type="checkbox" id="updates" />
-                    <label htmlFor="updates" style={{ fontWeight: 'normal', marginBottom: 0 }}>
-                        Send me important updates & promotions via SMS, email, and WhatsApp
+                <div className="checkbox-group" style={{ marginBottom: '1.5rem', display: 'flex', gap: '10px' }}>
+                    <input type="checkbox" id="updates" style={{ width: 'auto' }} />
+                    <label htmlFor="updates" style={{ textTransform: 'none', color: 'var(--text-dim)', fontSize: '0.75rem', marginBottom: 0 }}>
+                        I agree to receive the latest opportunities & updates.
                     </label>
                 </div>
 
-                <p style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '1rem', textAlign: 'center' }}>
-                    By clicking Register, you agree to the Terms and Conditions & Privacy Policy of jobSpark.com
-                </p>
-
                 <button type="submit" className="btn-primary" disabled={loading}>
-                    {loading ? 'Registering...' : 'Register now'}
+                    {loading ? 'Processing...' : 'Create Account'}
                 </button>
 
                 <div className="link-center">
-                    Already have an account? <Link to="/login">Login here</Link>
+                    Already a member? <Link to="/login">Sign In</Link>
                 </div>
 
                 <div className="divider">Or</div>
 
                 <button type="button" className="btn-google" onClick={() => googleLogin()}>
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: '20px', marginRight: '10px' }} />
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: '18px' }} />
                     Continue with Google
                 </button>
-            </form>
-        </div>
+            </motion.form>
+        </motion.div>
     );
 }
